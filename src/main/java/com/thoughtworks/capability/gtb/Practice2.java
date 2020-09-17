@@ -10,7 +10,18 @@ import java.time.LocalDate;
  */
 public class Practice2 {
 
+  private static final int FRIDAY_TO_NEXT_WORKDAYS = 3;
+  private static final int SATURDAY_TO_NEXT_WORKDAYS = 2;
+  private static final int DEFAULT_DAYS_OFFSET = 1;
+
   public static LocalDate getNextWorkDate(LocalDate date) {
-    return null;
+    switch (date.getDayOfWeek()) {
+      case FRIDAY:
+        return date.plusDays(FRIDAY_TO_NEXT_WORKDAYS);
+      case SATURDAY:
+        return date.plusDays(SATURDAY_TO_NEXT_WORKDAYS);
+      default:
+        return date.plusDays(DEFAULT_DAYS_OFFSET);
+    }
   }
 }
