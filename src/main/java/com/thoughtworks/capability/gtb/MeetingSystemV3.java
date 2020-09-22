@@ -19,8 +19,8 @@ import java.time.temporal.Temporal;
 public class MeetingSystemV3 {
 
     private static final String DATETIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
-    private static final String LONDON_TIMEZONE = "Europe/London";
-    private static final String CHICAGO_TIMEZONE = "America/Chicago";
+    private static final ZoneId LONDON_ZONE_ID = ZoneId.of("Europe/London");
+    private static final ZoneId CHICAGO_ZONE_ID = ZoneId.of("America/Chicago");
 
     public static void main(String[] args) {
         String timeStr = "2020-04-01 14:30:00";
@@ -29,32 +29,20 @@ public class MeetingSystemV3 {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern(DATETIME_PATTERN);
         // 从字符串解析得到会议时间
         LocalDateTime meetingTime = LocalDateTime.parse(timeStr, formatter);
-        // 从【伦敦】转换到本地时区【中国】，以进行比较
-        meetingTime = convertTimeZone(meetingTime, LONDON_TIMEZONE);
+        ZonedDateTime zonedLondonTime = ZonedDateTime.of(meetingTime, LONDON_ZONE_ID);
+        meetingTime = zonedLondonTime.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
         LocalDateTime now = LocalDateTime.now();
         if (now.isAfter(meetingTime)) {
             LocalDateTime tomorrow = now.plusDays(1);
             Period period = Period.between(meetingTime.toLocalDate(), tomorrow.toLocalDate());
             // 格式化新会议时间
             meetingTime = LocalDateTime.from(period.addTo(meetingTime));
+            ZonedDateTime zonedDateDefaultTime = ZonedDateTime.of(meetingTime, ZoneId.systemDefault());
             // 将添加好的新时间转换为【芝加哥】时间
-            String showTimeStr = formatter.format(convertTimeZone(meetingTime, CHICAGO_TIMEZONE));
+            String showTimeStr = formatter.format(zonedDateDefaultTime.withZoneSameInstant(CHICAGO_ZONE_ID).toLocalDateTime());;
             System.out.println(showTimeStr);
         } else {
             System.out.println("会议还没开始呢");
         }
-    }
-
-    /**
-     *
-     * @param meetingTime 设置本地时间(CHINA)
-     * @param TimeZone 设置要转换的TimeZone(LONDON_TIMEZONE/CHICAGO_TIMEZONE)
-     * @return 转换好时区的时间
-     */
-    private static LocalDateTime convertTimeZone(LocalDateTime meetingTime, String TimeZone) {
-        ZonedDateTime meetingLondonDateTime = meetingTime.atZone(ZoneId.of(TimeZone));
-        ZoneOffset offset = meetingLondonDateTime.getOffset();
-        int totalOffSeconds = offset.getTotalSeconds();
-        return meetingTime.plusSeconds(totalOffSeconds);
     }
 }
